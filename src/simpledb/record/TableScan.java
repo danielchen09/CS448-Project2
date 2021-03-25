@@ -28,7 +28,7 @@ public class TableScan implements UpdateScan {
    }
 
    // Methods that implement Scan
-
+ 
    public void beforeFirst() {
       moveToBlock(0);
    }
