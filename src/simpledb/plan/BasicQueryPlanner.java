@@ -52,6 +52,6 @@ public class BasicQueryPlanner implements QueryPlanner {
     }
 
     public Plan createPlan(QueryData data, Transaction tx) {
-        return new ProjectPlan(new SelectPlan(new TablePlan(tx, data.tables().iterator().next(), mdm), data.pred()), data.fields());
+        return new BlockPlan(tx, data.tables().iterator().next(), mdm);
     }
 }

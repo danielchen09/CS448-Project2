@@ -35,7 +35,6 @@ public class BlockScan implements Scan {
                 return i;
             }
             BlockId blk = new BlockId(filename, last + i);
-            System.out.println("new block + " + blk);
             RecordPage rp = new RecordPage(tx, blk, layout);
             pages.add(rp);
         }
@@ -46,10 +45,8 @@ public class BlockScan implements Scan {
 
     @Override
     public void beforeFirst() {
-        close();
-        last = -1;
-        loadNext(1);
         currentslot = -1;
+        currentblock = 0;
     }
 
     @Override
@@ -95,7 +92,7 @@ public class BlockScan implements Scan {
             tx.unpin(rp.block());
         }
         pages.clear();
-        currentblock = -1;
+        currentblock = 0;
         currentslot = -1;
     }
 }
