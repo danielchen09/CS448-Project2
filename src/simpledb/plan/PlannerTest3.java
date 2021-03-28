@@ -4,9 +4,24 @@ import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.query.Scan;
 
+import java.io.File;
+
 public class PlannerTest3 {
+   public static void deleteDir(File f) {
+      if (f.isDirectory()) {
+         for (File ff : f.listFiles()) {
+            deleteDir(ff);
+         }
+      }
+      f.delete();
+   }
+
    public static void main(String[] args) {
-      SimpleDB db = new SimpleDB("plannertest2");
+      String fname = "plannertest3";
+      File ff = new File(fname);
+      deleteDir(ff);
+
+      SimpleDB db = new SimpleDB("plannertest3");
       Transaction tx = db.newTx();
       Planner planner = db.planner();
       
@@ -32,17 +47,17 @@ public class PlannerTest3 {
          planner.executeUpdate(cmd, tx);
          System.out.println(cmd);
       }
-      
-      cmd = "create table T3(E int, F varchar(9))";
-      planner.executeUpdate(cmd, tx);
-      System.out.println("Inserting " + n + " records into T3.");
-      for (int i=0; i<n; i++) {
-         int e = i;
-         String f = "fff"+e;
-         cmd = "insert into T3(E,F) values(" + e + ", '"+ f + "')";
-         planner.executeUpdate(cmd, tx);
-         System.out.println(cmd);
-      }
+//
+//      cmd = "create table T3(E int, F varchar(9))";
+//      planner.executeUpdate(cmd, tx);
+//      System.out.println("Inserting " + n + " records into T3.");
+//      for (int i=0; i<n; i++) {
+//         int e = i;
+//         String f = "fff"+e;
+//         cmd = "insert into T3(E,F) values(" + e + ", '"+ f + "')";
+//         planner.executeUpdate(cmd, tx);
+//         System.out.println(cmd);
+//      }
 
       String qry = "select B,D from T1,T2 where A=C";
       Plan p = planner.createQueryPlan(qry, tx);
@@ -51,13 +66,13 @@ public class PlannerTest3 {
          System.out.println(s.getString("b") + " " + s.getString("d")); 
       s.close();
       
-      
-      qry = "select D,F from T2,T3 where C=E";
-      p = planner.createQueryPlan(qry, tx);
-      s = p.open();
-      while (s.next())
-    	  System.out.println(s.getString("d") + " " + s.getString("f")); 
-      s.close();
+//
+//      qry = "select D,F from T2,T3 where C=E";
+//      p = planner.createQueryPlan(qry, tx);
+//      s = p.open();
+//      while (s.next())
+//    	  System.out.println(s.getString("d") + " " + s.getString("f"));
+//      s.close();
 
       tx.commit();
       

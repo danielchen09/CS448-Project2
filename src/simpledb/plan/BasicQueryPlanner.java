@@ -1,6 +1,12 @@
 package simpledb.plan;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import simpledb.materialize.SortPlan;
+import simpledb.query.Predicate;
+import simpledb.record.Layout;
+import simpledb.record.Schema;
 import simpledb.tx.Transaction;
 import simpledb.metadata.*;
 import simpledb.parse.*;
@@ -51,7 +57,19 @@ public class BasicQueryPlanner implements QueryPlanner {
         return p;
     }
 
+    // Merge Join
     public Plan createPlan(QueryData data, Transaction tx) {
-        return new BlockPlan(tx, data.tables().iterator().next(), mdm);
+        List<Plan> plans = new ArrayList<>();
+        for (String tblname : data.tables()) {
+            plans.add(new TablePlan(tx, tblname, mdm));
+        }
+
+        Plan p = plans.remove(0);
+        for (Plan nextplan : plans) {
+            p = new MergeJoinPlan(tx, p, nextplan, data.pred());
+        }
+
+        p = new ProjectPlan(p, data.fields());
+        return p;
     }
 }

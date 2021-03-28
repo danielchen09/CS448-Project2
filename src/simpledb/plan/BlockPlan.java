@@ -15,12 +15,6 @@ public class BlockPlan implements Plan {
     private Layout layout;
     private StatInfo si;
 
-    /**
-     * Creates a leaf node in the query tree corresponding
-     * to the specified table.
-     * @param tblname the name of the table
-     * @param tx the calling transaction
-     */
     public BlockPlan(Transaction tx, String tblname, MetadataMgr md) {
         this.tblname = tblname;
         this.tx = tx;
@@ -50,6 +44,6 @@ public class BlockPlan implements Plan {
 
     @Override
     public Schema schema() {
-        return null;
+        return layout.schema();
     }
 }

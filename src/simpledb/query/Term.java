@@ -117,6 +117,14 @@ public class Term {
    public boolean appliesTo(Schema sch) {
       return lhs.appliesTo(sch) && rhs.appliesTo(sch);
    }
+
+   public Expression getExpression(Schema sch) {
+      if (lhs.appliesTo(sch))
+         return lhs;
+      if (rhs.appliesTo(sch))
+         return rhs;
+      return null;
+   }
    
    public String toString() {
       return lhs.toString() + "=" + rhs.toString();
