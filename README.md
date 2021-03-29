@@ -60,37 +60,22 @@ void open(r, s: tables, pred: join conditions):
   ts := before first of Bs
   
 bool next():
-  while there is next in Bs do begin
-    ts = next in Bs
+  while Bs.next() do begin
     if test(tr, ts, pred) then return true
   end  
   // Bs used up, load next tr
-  if there is no next in Br then begin
+  if Br.next() then begin
     // Br used up, load next Bs
-    if there is no next block in s then begin
+    if s.next() in s then begin
       // s used up, load next Br
-      if there is no next block in r then return false // r used up, done
-      Br := next M - 2 block in r
-      Bs := first block in s  
-    else begin 
-      Bs := next block in s
-    end  
+      if r.next() then return false // r used up, done
+      Bs := first block in s
+    end   
     tr := first tuple in Br
-  else begin 
-    tr := next tuple in Br 
-  end  
-  ts := first block in Bs
+  end
+  ts := first tuple in Bs
       
   return next() // keep finding until there is a match, or the end is reached  
-```
-- plan
-```
-p := BlockNestedLoopJoinPlan(remove(first 2 tables in the query), query.pred)
-for each of the remaining table t in the query do begin
-  p := BlockNestedLoopJoinPlan(p, t, query.pred)
-end
-
-return ProjectPlan(p, query.fields) 
 ```
 
 ### Merge-join
@@ -129,12 +114,18 @@ end
 - pseudocode for demand driven pipelining
 ```
 variables:
-  Br := b blocks in r
-  Bs := b blocks in s
-  (2b <= M - 1)
+  JA: join attribute
   
 void open(r, s):
-  
+
+bool next():
+  if not s.next() then return false
+  while r[JA] < s[JA] do begin
+    if not r.next() then return false
+  end
+  if r[JA] = s[JA] then return r.next()
+  return next()
+      
 ```
 
 ### Hash Join

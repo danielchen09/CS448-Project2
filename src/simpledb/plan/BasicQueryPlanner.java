@@ -57,19 +57,7 @@ public class BasicQueryPlanner implements QueryPlanner {
         return p;
     }
 
-    // Merge Join
     public Plan createPlan(QueryData data, Transaction tx) {
-        List<Plan> plans = new ArrayList<>();
-        for (String tblname : data.tables()) {
-            plans.add(new TablePlan(tx, tblname, mdm));
-        }
-
-        Plan p = plans.remove(0);
-        for (Plan nextplan : plans) {
-            p = new MergeJoinPlan(tx, p, nextplan, data.pred());
-        }
-
-        p = new ProjectPlan(p, data.fields());
-        return p;
+        return new ProjectPlan(new SelectPlan(new TablePlan(tx, data.tables().iterator().next(), mdm), data.pred()), data.fields());
     }
 }

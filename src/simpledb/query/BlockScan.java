@@ -39,7 +39,7 @@ public class BlockScan implements Scan {
             pages.add(rp);
         }
         last += n;
-        currentblock = 0;
+        beforeFirst();
         return n;
     }
 
