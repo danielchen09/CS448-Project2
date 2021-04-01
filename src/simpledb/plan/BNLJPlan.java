@@ -2,10 +2,7 @@ package simpledb.plan;
 
 import simpledb.metadata.MetadataMgr;
 import simpledb.metadata.StatInfo;
-import simpledb.query.BNLJScan;
-import simpledb.query.BlockScan;
-import simpledb.query.Predicate;
-import simpledb.query.Scan;
+import simpledb.query.*;
 import simpledb.record.Layout;
 import simpledb.record.Schema;
 import simpledb.tx.Transaction;

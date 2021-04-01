@@ -4,6 +4,7 @@ import java.io.File;
 import simpledb.file.FileMgr;
 import simpledb.log.LogMgr;
 import simpledb.buffer.BufferMgr;
+import simpledb.record.Layout;
 import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
 import simpledb.plan.*;
@@ -61,6 +62,10 @@ public class SimpleDB {
 //    UpdatePlanner up = new IndexUpdatePlanner(mdm);
       planner = new Planner(qp, up);
       tx.commit();
+   }
+
+   public int getTableSlotSize(String table, Transaction tx) {
+      return new Layout(mdm.getLayout(table, tx).schema()).slotSize();
    }
    
    /**

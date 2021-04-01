@@ -28,7 +28,14 @@ public class Planner {
       verifyQuery(data);
       return qplanner.createPlan(data, tx);
    }
-   
+
+   public Plan createQueryPlan(String qry, Transaction tx, QueryPlannerTest.JoinPlan plan) {
+      Parser parser = new Parser(qry);
+      QueryData data = parser.query();
+      verifyQuery(data);
+      return ((QueryPlannerTest) qplanner).createPlan(data, tx, plan);
+   }
+
    /**
     * Executes an SQL insert, delete, modify, or
     * create statement.

@@ -1,10 +1,7 @@
 package simpledb.plan;
 
 import simpledb.materialize.SortPlan;
-import simpledb.query.Constant;
-import simpledb.query.MergeJoinScan;
-import simpledb.query.Predicate;
-import simpledb.query.Scan;
+import simpledb.query.*;
 import simpledb.record.Schema;
 import simpledb.tx.Transaction;
 
@@ -21,11 +18,22 @@ public class MergeJoinPlan implements Plan {
         schema.addAll(p1.schema());
         schema.addAll(p2.schema());
         this.pred = pred.selectSubPred(schema);
-        this.fieldr = this.pred.getTerms().get(0).getExpression(p1.schema()).asFieldName();
-        this.fields = this.pred.getTerms().get(0).getExpression(p2.schema()).asFieldName();
+
+        Term matchTerm = findMatchTerm(p1, p2);
+        this.fieldr = matchTerm.getExpression(p1.schema()).asFieldName();
+        this.fields = matchTerm.getExpression(p2.schema()).asFieldName();
 
         this.p1 = new SortPlan(tx, p1, Arrays.asList(fieldr));
         this.p2 = new SortPlan(tx, p2, Arrays.asList(fields));
+    }
+
+    private Term findMatchTerm(Plan p1, Plan p2) {
+        for (Term t : this.pred.getTerms()) {
+            if (t.getExpression(p1.schema()) != null && t.getExpression(p2.schema()) != null) {
+                return t;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -35,17 +43,17 @@ public class MergeJoinPlan implements Plan {
 
     @Override
     public int blocksAccessed() {
-        return 0;
+        return p1.blocksAccessed() + p2.blocksAccessed();
     }
 
     @Override
     public int recordsOutput() {
-        return 0;
+        return p1.recordsOutput() * p2.recordsOutput() / Math.max(p1.distinctValues(this.fieldr), p2.distinctValues(this.fields));
     }
 
     @Override
     public int distinctValues(String fldname) {
-        return 0;
+        return fldname.equals(this.fieldr) ? p1.distinctValues(fldname) : p2.distinctValues(fldname);
     }
 
     @Override
