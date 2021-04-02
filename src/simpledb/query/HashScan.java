@@ -15,10 +15,11 @@ public class HashScan implements Scan {
       // s: build input, r: probe input
       this.s = s;
       this.r = r;
-      beforeFirst();
       this.pred = pred;
+      beforeFirst();
       //Compute JoinAttrs in Predicate.java
       JoinAttrs = pred.findJoinAttribute(pred, s, r);
+      System.out.println("join: " + JoinAttrs);
       //use values in join attribute column in the table as the key, record as the value
       //BUILD HASH
       while(s.next()){
