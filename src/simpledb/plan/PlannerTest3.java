@@ -66,16 +66,17 @@ public class PlannerTest3 {
       tx = db.newTx();
       planner = db.planner();
 
-      insert(0, 5, 1);
-      insert(0, 5, 1);
+      insert(0, 50, 1);
+      insert(0, 50, 1);
+      insert(0, 50, 1);
 
       timer = System.currentTimeMillis();
 
-      String qry = "select B,D from T1,T2 where A=C";
+      String qry = "select B,D,F from T1,T2,T3 where A=C and C=E";
       Plan p = planner.createQueryPlan(qry, tx, plan);
       Scan s = p.open();
       while (s.next())
-         System.out.println(s.getString("b") + " " + s.getString("d"));
+         System.out.println(s.getString("b") + " " + s.getString("d") + " " + s.getString("f"));
       s.close();
 
       tx.commit();

@@ -91,6 +91,7 @@ public class BNLJScan implements Scan {
 
         public void reset() {
             moveToBlock(0);
+            isdone = false;
         }
 
         public void close() {
@@ -149,7 +150,6 @@ public class BNLJScan implements Scan {
             // innermost loop
             while (s.next()) {
                 if (pred.isSatisfied(this)) {
-                    System.out.println("matched " + s.getVal("d") + " " + r.getVal("b"));
                     return true;
                 }
             }
