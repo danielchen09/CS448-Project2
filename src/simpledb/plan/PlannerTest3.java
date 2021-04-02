@@ -68,15 +68,14 @@ public class PlannerTest3 {
 
       insert(0, 5, 1);
       insert(0, 5, 1);
-      insert(0, 5, 1);
 
       timer = System.currentTimeMillis();
 
-      String qry = "select B,D,F from T1,T2,T3 where A=C and C=E";
+      String qry = "select B,D from T1,T2 where A=C";
       Plan p = planner.createQueryPlan(qry, tx, plan);
       Scan s = p.open();
       while (s.next())
-         System.out.println(s.getString("b") + " " + s.getString("d") + " " + s.getString("f"));
+         System.out.println(s.getString("b") + " " + s.getString("d"));
       s.close();
 
       tx.commit();
@@ -84,7 +83,7 @@ public class PlannerTest3 {
       return time;
    }
 
-   public static void main(String[] args) throws IOException {
+   public static void t1() throws IOException {
       for (QueryPlannerTest.JoinPlan jp : QueryPlannerTest.JoinPlan.values()) {
          String dname = DNAME_BASE + "-" + jp;
          try {
@@ -99,5 +98,9 @@ public class PlannerTest3 {
             deleteDir(ff);
          }
       }
+   }
+
+   public static void main(String[] args) throws IOException {
+      t1();
    }
 }

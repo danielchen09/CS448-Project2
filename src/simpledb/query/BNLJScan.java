@@ -8,7 +8,7 @@ import simpledb.tx.Transaction;
 import static java.sql.Types.INTEGER;
 
 public class BNLJScan implements Scan {
-    private static final String FILE_NAME = "bnlj.tbl";
+    private static int count = 0;
 
     class PageScan implements Scan {
         private Transaction tx;
@@ -16,21 +16,30 @@ public class BNLJScan implements Scan {
         private Scan scan;
         private RecordPage rp;
         private int currentslot;
+        private String fname;
+        private boolean isdone = false;
 
-        public PageScan(Transaction tx, Layout layout, Scan scan) {
+        public PageScan(Transaction tx, Layout layout, Scan scan, String fname) {
             this.tx = tx;
             this.layout = layout;
             this.scan = scan;
             this.currentslot = -1;
+            this.fname = fname;
             scan.beforeFirst();
             loadNext();
         }
 
         public int loadNext() {
+            if (isdone)
+                return 0;
             int loadcount = 0;
-            if (rp == null || rp.block().number() == tx.size(BNLJScan.FILE_NAME) - 1) {
+            if (rp == null || rp.block().number() >= tx.size(fname) - 1) {
                 moveToNewBlock();
-                while ((currentslot = rp.insertAfter(currentslot)) >= 0 && scan.next()) {
+                while ((currentslot = rp.insertAfter(currentslot)) >= 0) {
+                    if (!scan.next()) {
+                        isdone = true;
+                        break;
+                    }
                     for (String fldname : layout.schema().fields()) {
                         if (layout.schema().type(fldname) == INTEGER)
                             rp.setInt(currentslot, fldname, scan.getInt(fldname));
@@ -91,14 +100,14 @@ public class BNLJScan implements Scan {
 
         private void moveToBlock(int blknum) {
             close();
-            BlockId blk = new BlockId(BNLJScan.FILE_NAME, blknum);
+            BlockId blk = new BlockId(fname, blknum);
             rp = new RecordPage(tx, blk, layout);
             currentslot = -1;
         }
 
         private void moveToNewBlock() {
             close();
-            BlockId blk = tx.append(BNLJScan.FILE_NAME);
+            BlockId blk = tx.append(fname);
             rp = new RecordPage(tx, blk, layout);
             rp.format();
             currentslot = -1;
@@ -112,8 +121,8 @@ public class BNLJScan implements Scan {
 
     public BNLJScan(Transaction tx, Layout layout, Scan r, Scan s, Predicate pred) {
         this.layout = layout;
-        this.r = new PageScan(tx, projectLayout(r), r);
-        this.s = new PageScan(tx, projectLayout(s), s);
+        this.r = new PageScan(tx, projectLayout(r), r, "bnlj-" + (count++) + ".tbl");
+        this.s = new PageScan(tx, projectLayout(s), s, "bnlj-" + (count++) + ".tbl");
         this.pred = pred;
         beforeFirst();
     }
@@ -140,6 +149,7 @@ public class BNLJScan implements Scan {
             // innermost loop
             while (s.next()) {
                 if (pred.isSatisfied(this)) {
+                    System.out.println("matched " + s.getVal("d") + " " + r.getVal("b"));
                     return true;
                 }
             }
