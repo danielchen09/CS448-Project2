@@ -1,5 +1,9 @@
 package simpledb.plan;
 
+import simpledb.file.BlockId;
+import simpledb.record.Layout;
+import simpledb.record.RecordPage;
+import simpledb.record.Schema;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.query.Scan;
@@ -66,17 +70,17 @@ public class PlannerTest3 {
       tx = db.newTx();
       planner = db.planner();
 
-      insert(0, 50, 1);
-      insert(0, 50, 1);
-      insert(0, 50, 1);
+      insert(0, 30, 1);
+      insert(0, 30, 1);
+//      insert(0, 5, 1);
 
       timer = System.currentTimeMillis();
 
-      String qry = "select B,D,F from T1,T2,T3 where A=C and C=E";
+      String qry = "select B,D from T1,T2 where A=C";
       Plan p = planner.createQueryPlan(qry, tx, plan);
       Scan s = p.open();
       while (s.next())
-         System.out.println(s.getString("b") + " " + s.getString("d") + " " + s.getString("f"));
+         System.out.println(s.getString("b") + " " + s.getString("d"));
       s.close();
 
       tx.commit();
@@ -99,6 +103,30 @@ public class PlannerTest3 {
             deleteDir(ff);
          }
       }
+   }
+
+   public static void t2() {
+
+      db = new SimpleDB("testrp");
+      Transaction tx = db.newTx();
+      BlockId bid = tx.append("file1");
+      Schema s = new Schema();
+      s.addIntField("intf");
+      s.addStringField("strf", 9);
+      RecordPage rp = new RecordPage(tx, bid, new Layout(s));
+      int slot = -1;
+      while ((slot = rp.insertAfter(slot)) >= 0) {
+         rp.setInt(slot, "intf", slot);
+         rp.setString(slot, "strf", "s" + slot);
+      }
+      int rslot = -1;
+      while ((rslot = rp.nextAfter(rslot)) >= 0) {
+         rp.delete(rslot);
+         System.out.println(rp.getInt(rslot, "intf"));
+         System.out.println(rp.getString(rslot, "strf"));
+      }
+      tx.unpin(rp.block());
+      tx.commit();
    }
 
    public static void main(String[] args) throws IOException {
