@@ -41,6 +41,7 @@ public class HashScan implements Scan {
          //iterate hash table keys
          while(keys.hasMoreElements()){
             if(h.get(keys.nextElement()) == r.getVal(JoinAttrs)){ //match
+               r.next();
                return true;
             }
             return false;

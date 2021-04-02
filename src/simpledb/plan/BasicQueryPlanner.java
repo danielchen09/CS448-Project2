@@ -74,6 +74,7 @@ public class BasicQueryPlanner implements QueryPlannerTest {
             }
             case HASH_JOIN: {
                 System.out.println("running hash join");
+                return createPlanHash(data, tx);
             }
             default: {
                 System.out.println("running cross join");
@@ -106,6 +107,20 @@ public class BasicQueryPlanner implements QueryPlannerTest {
         Plan p = plans.remove(0);
         for (Plan nextplan : plans) {
             p = new BNLJPlan(p, nextplan, data.pred());
+        }
+
+        return new ProjectPlan(p, data.fields());
+    }
+
+    public Plan createPlanHash(QueryData data, Transaction tx) {
+        List<Plan> plans = new ArrayList<>();
+        for(String tblname : data.tables()) {
+            plans.add(new BlockPlan(tx, tblname, mdm));
+        }
+
+        Plan p = plans.remove(0);
+        for(Plan nextplan : plans){
+            p = new HashPlan(p, nextplan, data.pred());
         }
 
         return new ProjectPlan(p, data.fields());
