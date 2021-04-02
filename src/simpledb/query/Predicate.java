@@ -12,7 +12,7 @@ import simpledb.record.*;
  */
 public class Predicate {
    private List<Term> terms = new ArrayList<Term>();
-
+   private String JoinAttrs;
    /**
     * Create an empty predicate, corresponding to "true".
     */
@@ -24,6 +24,26 @@ public class Predicate {
     */
    public Predicate(Term t) {
       terms.add(t);
+   }
+
+
+   /**
+    * Function to find join attribute
+    * @param pred
+    * @param r
+    * @param s
+    */
+   public String findJoinAttribute(Predicate pred, Scan r, Scan s){
+      //loop through terms
+      //find a term that matches both lhs & rhs
+      //return joinattrs
+      for(int i = 0; i < pred.terms.size(); i++){
+//         System.out.println("This is pred:" + pred.terms.get(i));
+         if(pred.terms.get(i).isSatisfied(r) == pred.terms.get(i).isSatisfied(s)){
+            JoinAttrs = pred.terms.get(i).getlhs().toString();
+         }
+      }
+      return JoinAttrs;
    }
 
    /**

@@ -21,7 +21,11 @@ public class Term {
       this.lhs = lhs;
       this.rhs = rhs;
    }
-   
+
+   public Expression getlhs(){
+      return lhs;
+   }
+
    /**
     * Return true if both of the term's expressions
     * evaluate to the same constant,

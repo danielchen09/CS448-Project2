@@ -25,7 +25,7 @@ public class PlannerTest1 {
       Plan p = planner.createQueryPlan(qry, tx);
       Scan s = p.open();
       while (s.next())
-         System.out.println(s.getString("b")); 
+         System.out.println(s.getString("b"));
       s.close();
       tx.commit();
    }
