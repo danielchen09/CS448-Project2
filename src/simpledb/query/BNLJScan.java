@@ -37,6 +37,7 @@ public class BNLJScan implements Scan {
                 moveToNewBlock();
                 while ((currentslot = rp.insertAfter(currentslot)) >= 0) {
                     if (!scan.next()) {
+                        rp.delete(currentslot);
                         isdone = true;
                         break;
                     }

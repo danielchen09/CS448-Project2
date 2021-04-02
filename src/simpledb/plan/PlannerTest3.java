@@ -70,9 +70,8 @@ public class PlannerTest3 {
       tx = db.newTx();
       planner = db.planner();
 
-      insert(0, 30, 1);
-      insert(0, 30, 1);
-//      insert(0, 5, 1);
+      insert(0, 20, 1);
+      insert(0, 20, 1);
 
       timer = System.currentTimeMillis();
 
@@ -105,6 +104,13 @@ public class PlannerTest3 {
       }
    }
 
+   public static void t11() {
+      QueryPlannerTest.JoinPlan jp = QueryPlannerTest.JoinPlan.BLOCK_NESTED_LOOP_JOIN;
+      String dname = DNAME_BASE + "-" + jp;
+      long time = runTest(dname, jp);
+      System.out.println(jp + " " + time);
+   }
+
    public static void t2() {
 
       db = new SimpleDB("testrp");
@@ -130,6 +136,6 @@ public class PlannerTest3 {
    }
 
    public static void main(String[] args) throws IOException {
-      t1();
+      t11();
    }
 }
