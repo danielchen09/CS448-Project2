@@ -4,12 +4,11 @@ import simpledb.file.BlockId;
 import simpledb.record.Layout;
 import simpledb.record.RecordPage;
 import simpledb.record.Schema;
-import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import static java.sql.Types.INTEGER;
 
 public class BNLJScan implements Scan {
-    private static final String fname = "bnlj.tbl";
+    private static final String FILE_NAME = "bnlj.tbl";
 
     class PageScan implements Scan {
         private Transaction tx;
@@ -24,25 +23,25 @@ public class BNLJScan implements Scan {
             this.scan = scan;
             this.currentslot = -1;
             scan.beforeFirst();
-            moveToNewBlock();
+            loadNext();
         }
 
         public int loadNext() {
-            if (rp.block().number() == tx.size(BNLJScan.fname) - 1)
-                moveToNewBlock();
-            else {
-                moveToBlock(rp.block().number() + 1);
-                return 1;
-            }
             int loadcount = 0;
-            while ((currentslot = rp.insertAfter(currentslot)) >= 0 && scan.next()) {
-                for (String fldname : layout.schema().fields()) {
-                    if (layout.schema().type(fldname) == INTEGER)
-                        rp.setInt(currentslot, fldname, scan.getInt(fldname));
-                    else
-                        rp.setString(currentslot, fldname, scan.getString(fldname));
+            if (rp == null || rp.block().number() == tx.size(BNLJScan.FILE_NAME) - 1) {
+                moveToNewBlock();
+                while ((currentslot = rp.insertAfter(currentslot)) >= 0 && scan.next()) {
+                    for (String fldname : layout.schema().fields()) {
+                        if (layout.schema().type(fldname) == INTEGER)
+                            rp.setInt(currentslot, fldname, scan.getInt(fldname));
+                        else
+                            rp.setString(currentslot, fldname, scan.getString(fldname));
+                    }
+                    loadcount++;
                 }
-                loadcount++;
+            } else {
+                moveToBlock(rp.block().number() + 1);
+                loadcount = 1;
             }
             currentslot = -1;
             return loadcount;
@@ -92,14 +91,14 @@ public class BNLJScan implements Scan {
 
         private void moveToBlock(int blknum) {
             close();
-            BlockId blk = new BlockId(BNLJScan.fname, blknum);
+            BlockId blk = new BlockId(BNLJScan.FILE_NAME, blknum);
             rp = new RecordPage(tx, blk, layout);
             currentslot = -1;
         }
 
         private void moveToNewBlock() {
             close();
-            BlockId blk = tx.append(BNLJScan.fname);
+            BlockId blk = tx.append(BNLJScan.FILE_NAME);
             rp = new RecordPage(tx, blk, layout);
             rp.format();
             currentslot = -1;

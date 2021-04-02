@@ -19,6 +19,8 @@ public class PlannerTest3 {
    private static int tableCount;
    private static int colCount;
 
+   public static SimpleDB db;
+
    public static void deleteDir(File f) throws IOException {
       if (f.isDirectory()) {
          for (File ff : f.listFiles()) {
@@ -60,13 +62,13 @@ public class PlannerTest3 {
       tableCount = 0;
       colCount = 0;
 
-      SimpleDB db = new SimpleDB(dname);
+      db = new SimpleDB(dname);
       tx = db.newTx();
       planner = db.planner();
 
-      insert(0, 20, 1);
-      insert(0, 10, 1);
-      insert(0, N, 1);
+      insert(0, 5, 1);
+      insert(0, 5, 1);
+      insert(0, 5, 1);
 
       timer = System.currentTimeMillis();
 
@@ -79,11 +81,6 @@ public class PlannerTest3 {
 
       tx.commit();
       long time = System.currentTimeMillis() - timer;
-      try {
-         db.fileMgr().closeAll();
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
       return time;
    }
 
@@ -94,6 +91,7 @@ public class PlannerTest3 {
             System.out.printf("running %s, directory: %s\n", jp, dname);
             long time = runTest(dname, jp);
             System.out.println(jp + " " + time);
+            db.fileMgr().closeAll();
          } catch (Exception ex) {
             ex.printStackTrace();
          } finally {
