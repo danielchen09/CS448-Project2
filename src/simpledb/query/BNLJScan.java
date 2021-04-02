@@ -1,21 +1,132 @@
 package simpledb.query;
 
+import simpledb.file.BlockId;
+import simpledb.record.Layout;
+import simpledb.record.RecordPage;
+import simpledb.record.Schema;
 import simpledb.server.SimpleDB;
+import simpledb.tx.Transaction;
+import static java.sql.Types.INTEGER;
 
 public class BNLJScan implements Scan {
-    private int bb = SimpleDB.BUFFER_SIZE - 2;
-    private BlockScan r, s;
-    private Predicate pred;
+    private static final String fname = "bnlj.tbl";
 
-    public BNLJScan(BlockScan r, BlockScan s, Predicate pred) {
-        this.r = r;
-        r.loadNext(bb);
-        this.s = s;
-        s.loadNext(1);
-        beforeFirst();
-        this.pred = pred;
+    class PageScan implements Scan {
+        private Transaction tx;
+        private Layout layout;
+        private Scan scan;
+        private RecordPage rp;
+        private int currentslot;
+
+        public PageScan(Transaction tx, Layout layout, Scan scan) {
+            this.tx = tx;
+            this.layout = layout;
+            this.scan = scan;
+            this.currentslot = -1;
+            scan.beforeFirst();
+            moveToNewBlock();
+        }
+
+        public int loadNext() {
+            if (rp.block().number() == tx.size(BNLJScan.fname) - 1)
+                moveToNewBlock();
+            else {
+                moveToBlock(rp.block().number() + 1);
+                return 1;
+            }
+            int loadcount = 0;
+            while ((currentslot = rp.insertAfter(currentslot)) >= 0 && scan.next()) {
+                for (String fldname : layout.schema().fields()) {
+                    if (layout.schema().type(fldname) == INTEGER)
+                        rp.setInt(currentslot, fldname, scan.getInt(fldname));
+                    else
+                        rp.setString(currentslot, fldname, scan.getString(fldname));
+                }
+                loadcount++;
+            }
+            currentslot = -1;
+            return loadcount;
+        }
+
+        @Override
+        public boolean next() {
+            currentslot = rp.nextAfter(currentslot);
+            return currentslot >= 0;
+        }
+
+        @Override
+        public void beforeFirst() {
+            currentslot = -1;
+        }
+
+        @Override
+        public int getInt(String fldname) {
+            return rp.getInt(currentslot, fldname);
+        }
+
+        @Override
+        public String getString(String fldname) {
+            return rp.getString(currentslot, fldname);
+        }
+
+        @Override
+        public Constant getVal(String fldname) {
+            if (layout.schema().type(fldname) == INTEGER)
+                return new Constant(rp.getInt(currentslot, fldname));
+            return new Constant(rp.getString(currentslot, fldname));
+        }
+
+        @Override
+        public boolean hasField(String fldname) {
+            return scan.hasField(fldname);
+        }
+
+        public void reset() {
+            moveToBlock(0);
+        }
+
+        public void close() {
+            if (rp != null)
+                tx.unpin(rp.block());
+        }
+
+        private void moveToBlock(int blknum) {
+            close();
+            BlockId blk = new BlockId(BNLJScan.fname, blknum);
+            rp = new RecordPage(tx, blk, layout);
+            currentslot = -1;
+        }
+
+        private void moveToNewBlock() {
+            close();
+            BlockId blk = tx.append(BNLJScan.fname);
+            rp = new RecordPage(tx, blk, layout);
+            rp.format();
+            currentslot = -1;
+        }
     }
 
+    private Predicate pred;
+    private Layout layout;
+
+    private PageScan r, s;
+
+    public BNLJScan(Transaction tx, Layout layout, Scan r, Scan s, Predicate pred) {
+        this.layout = layout;
+        this.r = new PageScan(tx, projectLayout(r), r);
+        this.s = new PageScan(tx, projectLayout(s), s);
+        this.pred = pred;
+        beforeFirst();
+    }
+
+    public Layout projectLayout(Scan s) {
+        Schema schema = new Schema();
+        for (String fldname : layout.schema().fields()) {
+            if (s.hasField(fldname))
+                schema.addField(fldname, layout.schema().type(fldname), layout.schema().length(fldname));
+        }
+        return new Layout(schema);
+    }
 
     @Override
     public void beforeFirst() {
@@ -36,15 +147,15 @@ public class BNLJScan implements Scan {
             // Bs exhausted, load next in Br
             if (!r.next()) {
                 // Br exhausted, load next in s
-                if (s.loadNext(1) == 0) {
+                if (s.loadNext() == 0) {
                     // s exhausted, load next in r
-                    if (r.loadNext(bb) == 0) {
+                    if (r.loadNext() == 0) {
                         // r exhausted, done
                         return false;
                     }
                     // next r is loaded, reset s
-                    s.close();
-                    s.loadNext(1);
+                    s.reset();
+                    s.loadNext();
                 }
                 // next s is loaded, reset Br
                 r.beforeFirst();

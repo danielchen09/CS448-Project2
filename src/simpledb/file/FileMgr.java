@@ -79,6 +79,12 @@ public class FileMgr {
       return blocksize;
    }
 
+   public void closeAll() throws IOException {
+      for (Map.Entry<String, RandomAccessFile> kvp : openFiles.entrySet()) {
+         kvp.getValue().close();
+      }
+   }
+
    private RandomAccessFile getFile(String filename) throws IOException {
       RandomAccessFile f = openFiles.get(filename);
       if (f == null) {
