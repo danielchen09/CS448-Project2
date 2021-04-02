@@ -51,6 +51,8 @@ public class BNLJScan implements Scan {
                 }
             } else {
                 moveToBlock(rp.block().number() + 1);
+                if (rp.block().number() == tx.size(fname) - 1)
+                    isdone = true;
                 loadcount = 1;
             }
             currentslot = -1;
@@ -96,6 +98,7 @@ public class BNLJScan implements Scan {
         }
 
         public void close() {
+            isdone = false;
             if (rp != null)
                 tx.unpin(rp.block());
         }
