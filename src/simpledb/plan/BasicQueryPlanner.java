@@ -47,7 +47,6 @@ public class BasicQueryPlanner implements QueryPlannerTest {
         Plan p = plans.remove(0);
         for (Plan nextplan : plans) {
             p = new OptimizedProductPlan(p, nextplan);
-            System.out.println(p.blocksAccessed());
         }
 
         //Step 3: Add a selection plan for the predicate
@@ -60,10 +59,6 @@ public class BasicQueryPlanner implements QueryPlannerTest {
 
     public Plan createPlan(QueryData data, Transaction tx, JoinPlan plan) {
         switch (plan) {
-            case CROSS_JOIN: {
-                System.out.println("running cross join");
-                return createPlan(data, tx);
-            }
             case BLOCK_NESTED_LOOP_JOIN: {
                 System.out.println("running block nested loop join");
                 return createPlanBNLJ(data, tx);

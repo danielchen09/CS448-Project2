@@ -168,7 +168,7 @@ public class BNLJScan implements Scan {
                     }
                     // next r is loaded, reset s
                     s.reset();
-                    s.loadNext();
+//                    s.loadNext();
                 }
                 // next s is loaded, reset Br
                 r.beforeFirst();
