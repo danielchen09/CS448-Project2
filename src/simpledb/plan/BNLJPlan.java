@@ -9,20 +9,23 @@ import simpledb.tx.Transaction;
 
 public class BNLJPlan implements Plan {
     private Plan p1, p2;
-    private Schema schema = new Schema();
+    private Schema schema;
     private Predicate pred;
+    private Transaction tx;
+    private Layout layout;
 
-    public BNLJPlan(Plan p1, Plan p2, Predicate pred) {
+    public BNLJPlan(Transaction tx, Layout layout, Plan p1, Plan p2, Predicate pred) {
+        this.tx = tx;
+        this.layout = layout;
         this.p1 = p1;
         this.p2 = p2;
-        schema.addAll(p1.schema());
-        schema.addAll(p2.schema());
+        this.schema = layout.schema();
         this.pred = pred.selectSubPred(schema);
     }
 
     @Override
     public Scan open() {
-        return new BNLJScan((BlockScan) p1.open(), (BlockScan) p2.open(), pred);
+        return new BNLJScan(tx, layout, p1.open(), p2.open(), pred);
     }
 
     @Override

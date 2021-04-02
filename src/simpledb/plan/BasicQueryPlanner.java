@@ -74,7 +74,6 @@ public class BasicQueryPlanner implements QueryPlannerTest {
             }
             case HASH_JOIN: {
                 System.out.println("running hash join");
-                return createPlanHash(data, tx);
             }
             default: {
                 System.out.println("running cross join");
@@ -101,28 +100,25 @@ public class BasicQueryPlanner implements QueryPlannerTest {
     public Plan createPlanBNLJ(QueryData data, Transaction tx) {
         List<Plan> plans = new ArrayList<>();
         for (String tblname : data.tables()) {
-            plans.add(new BlockPlan(tx, tblname, mdm));
+            plans.add(new TablePlan(tx, tblname, mdm));
         }
 
         Plan p = plans.remove(0);
-        for (Plan nextplan : plans) {
-            p = new BNLJPlan(p, nextplan, data.pred());
+        Iterator<String> it = data.tables().iterator();
+        Layout layout = mdm.getLayout(it.next(), tx);
+        for (int i = 0; i < data.tables().size() - 1; i++) {
+            layout = combineLayout(layout, mdm.getLayout(it.next(), tx));
+            p = new BNLJPlan(tx, layout, p, plans.get(i), data.pred());
         }
 
         return new ProjectPlan(p, data.fields());
     }
 
-    public Plan createPlanHash(QueryData data, Transaction tx) {
-        List<Plan> plans = new ArrayList<>();
-        for(String tblname : data.tables()) {
-            plans.add(new BlockPlan(tx, tblname, mdm));
-        }
+    public Layout combineLayout(Layout l1, Layout l2) {
+        Schema schema = new Schema();
+        schema.addAll(l1.schema());
+        schema.addAll(l2.schema());
 
-        Plan p = plans.remove(0);
-        for(Plan nextplan : plans){
-            p = new HashPlan(p, nextplan, data.pred());
-        }
-
-        return new ProjectPlan(p, data.fields());
+        return new Layout(schema);
     }
 }
