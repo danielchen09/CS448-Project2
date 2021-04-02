@@ -8,10 +8,7 @@ import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.query.Scan;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -63,6 +60,31 @@ public class PlannerTest3 {
       return result;
    }
 
+   public static List<Integer> generateRandom(int start, int end, int n) {
+      List<Integer> result = new ArrayList<>();
+      for (int i = 0; i < n; i++) {
+         result.add((int)(Math.random() * (end - start) + start));
+      }
+      return result;
+   }
+
+   public static List<Integer> generateSame(int n) {
+      List<Integer> result = new ArrayList<>();
+      for (int i = 0; i < n; i++) {
+         result.add(1);
+      }
+      return result;
+   }
+
+   public static List<Integer> generateRandomSame(int start, int end, int n) {
+      List<Integer> result = new ArrayList<>();
+      int r = (int)(Math.random() * (end - start) + start);
+      for (int i = 0; i < n; i++) {
+         result.add(r);
+      }
+      return result;
+   }
+
    public static void insert(List<Integer> data) {
       String tbl = "T" + (++tableCount);
       char col1 = (char)('A' + (colCount++));
@@ -89,6 +111,69 @@ public class PlannerTest3 {
       }, qry);
    }
 
+   public static long test2(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRange(0, 100, 1));
+         insert(generateRange(0, 5, 1));
+         return null;
+      }, qry);
+   }
+
+   public static long test3(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRandom(0, 100, 100));
+         insert(generateRandom(0, 100, 100));
+         return null;
+      }, qry);
+   }
+
+   public static long test4(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateSame(100));
+         insert(generateSame(100));
+         return null;
+      }, qry);
+   }
+
+   public static long test5(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRange(1, 100, 1));
+         insert(generateSame(100));
+         return null;
+      }, qry);
+   }
+
+   public static long test6(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRandom(1, 100, 100));
+         insert(generateSame(100));
+         return null;
+      }, qry);
+   }
+
+   public static long test7(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRange(1, 100, 1));
+         insert(generateRandomSame(1, 100, 100));
+         return null;
+      }, qry);
+   }
+
+   public static long test8(String dname, QueryPlannerTest.JoinPlan plan) throws Exception {
+      String qry = "select B,D from T1,T2 where A=C";
+      return runTest(dname, plan, () -> {
+         insert(generateRandom(1, 100, 100));
+         insert(generateRandomSame(1, 100, 100));
+         return null;
+      }, qry);
+   }
+
    public static long runTest(String dname, QueryPlannerTest.JoinPlan plan, Callable<Void> datagen, String qry) throws Exception {
       tableCount = 0;
       colCount = 0;
@@ -104,6 +189,7 @@ public class PlannerTest3 {
       Plan p = planner.createQueryPlan(qry, tx, plan);
       Scan s = p.open();
       while (s.next());
+//         System.out.println(s.getString("b") + " " + s.getString("d"));
       s.close();
 
       tx.commit();
@@ -112,14 +198,19 @@ public class PlannerTest3 {
    }
 
    public static void t1() throws IOException {
-      PrintWriter pw = new PrintWriter(new File(TEST_DIR + "test1.txt"));
-      for (int i = 0; i < 30; i++) {
+      File dir = new File(TEST_DIR);
+      if (!dir.exists()) {
+         dir.mkdir();
+      }
+      PrintWriter pw = new PrintWriter(new FileOutputStream(TEST_DIR + "test1.txt", false));
+      for (int i = 0; i < 1; i++) {
          for (QueryPlannerTest.JoinPlan jp : QueryPlannerTest.JoinPlan.values()) {
             String dname = DNAME_BASE + "-" + jp;
             try {
                System.out.printf("\nrunning %s, directory: %s\n", jp, dname);
                long time = test1(dname, jp);
                pw.println(jp + " " + time);
+               pw.flush();
                db.fileMgr().closeAll();
             } catch (Exception ex) {
                ex.printStackTrace();

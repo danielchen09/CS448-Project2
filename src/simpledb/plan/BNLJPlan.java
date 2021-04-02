@@ -17,8 +17,13 @@ public class BNLJPlan implements Plan {
     public BNLJPlan(Transaction tx, Layout layout, Plan p1, Plan p2, Predicate pred) {
         this.tx = tx;
         this.layout = layout;
-        this.p1 = p1;
-        this.p2 = p2;
+        if (p1.blocksAccessed() <= p2.blocksAccessed()) {
+            this.p1 = p1;
+            this.p2 = p2;
+        } else {
+            this.p1 = p2;
+            this.p2 = p1;
+        }
         this.schema = layout.schema();
         this.pred = pred.selectSubPred(schema);
     }

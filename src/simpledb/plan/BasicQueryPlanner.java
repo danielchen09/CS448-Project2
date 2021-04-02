@@ -48,6 +48,7 @@ public class BasicQueryPlanner implements QueryPlannerTest {
         for (Plan nextplan : plans) {
             p = new OptimizedProductPlan(p, nextplan);
         }
+        System.out.println(p.blocksAccessed() + " block access for cross join");
 
         //Step 3: Add a selection plan for the predicate
         p = new SelectPlan(p, data.pred());
@@ -89,6 +90,7 @@ public class BasicQueryPlanner implements QueryPlannerTest {
         for (Plan nextplan : plans) {
             p = new HashPlan(tx, p, nextplan, data.pred());
         }
+        System.out.println(p.blocksAccessed() + " block access for hash join");
 
         p = new ProjectPlan(p, data.fields());
         return p;
@@ -104,6 +106,7 @@ public class BasicQueryPlanner implements QueryPlannerTest {
         for (Plan nextplan : plans) {
             p = new MergeJoinPlan(tx, p, nextplan, data.pred());
         }
+        System.out.println(p.blocksAccessed() + " block access for merge join");
 
         p = new ProjectPlan(p, data.fields());
         return p;
@@ -122,6 +125,7 @@ public class BasicQueryPlanner implements QueryPlannerTest {
             layout = combineLayout(layout, mdm.getLayout(it.next(), tx));
             p = new BNLJPlan(tx, layout, p, plans.get(i), data.pred());
         }
+        System.out.println(p.blocksAccessed() + " block access for block nested loop join");
 
         return new ProjectPlan(p, data.fields());
     }

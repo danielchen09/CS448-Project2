@@ -26,12 +26,18 @@ public class HashPlan implements Plan {
         schema.addAll(p2.schema());
         this.pred = pred.selectSubPred(schema);
 
-        Term matchTerm = findMatchTerm(p1, p2);
-        this.fieldr = matchTerm.getExpression(p1.schema()).asFieldName();
-        this.fields = matchTerm.getExpression(p2.schema()).asFieldName();
 
-        this.p1 = p1;
-        this.p2 = p2;
+        if (p1.blocksAccessed() <= p2.blocksAccessed()) {
+            this.p1 = p1;
+            this.p2 = p2;
+        } else {
+            this.p1 = p2;
+            this.p2 = p1;
+        }
+
+        Term matchTerm = findMatchTerm(this.p1, this.p2);
+        this.fieldr = matchTerm.getExpression(this.p1.schema()).asFieldName();
+        this.fields = matchTerm.getExpression(this.p2.schema()).asFieldName();
     }
 
     private Term findMatchTerm(Plan p1, Plan p2) {
