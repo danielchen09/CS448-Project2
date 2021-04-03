@@ -42,9 +42,9 @@ public class MergeJoinPlan implements Plan {
     }
 
     @Override
-    public int blocksAccessed() {
-        return p1.blocksAccessed() + p2.blocksAccessed();
-    }
+        public int blocksAccessed() {
+            return p1.blocksAccessed() + p2.blocksAccessed();
+        }
 
     @Override
     public int recordsOutput() {

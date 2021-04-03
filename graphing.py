@@ -23,14 +23,22 @@ for k in dic.keys():
 data = np.array(data)
 data = data.reshape(length, -1)
 
-
+fig,axes = plt.subplots(2,1,figsize=(10,6))
 df = pd.DataFrame(data,columns=list(dic.keys()))
 color = dict(boxes='DarkGreen',whiskers='DarkOrange',medians='DarkBlue',caps='Gray')
 
 df = pd.DataFrame(dic)
-ax = df.plot.line()
+ax = df.plot.line(ax=axes[0])
 ax.set_xlabel('trial')
 ax.set_ylabel('time in ms')
 plt.legend(loc='lower left')
+
+avgs = []
+for k in dic.keys():
+    avgs.append(sum(dic[k]) / len(dic[k]))
+df = pd.DataFrame({'method': list(dic.keys()), 'average time in ms': avgs})
+ax = df.plot.bar(x='method', y='average time in ms', ax=axes[1], rot=0)
+ax.set_xlabel('')
+ax.set_ylabel('time in ms')
 
 plt.show()

@@ -9,6 +9,7 @@ import simpledb.record.Schema;
 import simpledb.tx.Transaction;
 
 public class HashPlan implements Plan {
+    public static int SIZE = 4;
     private Plan p1, p2;
     private Schema schema = new Schema();
     private Predicate pred;
@@ -56,7 +57,7 @@ public class HashPlan implements Plan {
 
     @Override
     public int blocksAccessed() {
-        return 0;
+        return 3 * (p1.blocksAccessed() + p2.blocksAccessed())+ 4 * SIZE ;
     }
 
     @Override

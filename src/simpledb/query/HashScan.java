@@ -1,6 +1,7 @@
 package simpledb.query;
 
 import simpledb.file.BlockId;
+import simpledb.plan.HashPlan;
 import simpledb.record.Layout;
 import simpledb.record.RecordPage;
 import simpledb.record.Schema;
@@ -30,7 +31,6 @@ public class HashScan implements Scan {
         }
     }
 
-    private static int SIZE = 2;
     private String fieldr, fields;
     private HashBucket[] hr;
     private HashBucket[] hs;
@@ -45,9 +45,9 @@ public class HashScan implements Scan {
         this.fields = fields;
         this.layout = layout;
 
-        hr = new HashBucket[SIZE];
-        hs = new HashBucket[SIZE];
-        for (int j = 0; j < SIZE; j++) {
+        hr = new HashBucket[HashPlan.SIZE];
+        hs = new HashBucket[HashPlan.SIZE];
+        for (int j = 0; j < HashPlan.SIZE; j++) {
             hr[j] = new HashBucket(tx, fname + "-r-" + j, projectLayout(r));
             hs[j] = new HashBucket(tx, fname + "-s-" + j, projectLayout(s));
         }
@@ -87,7 +87,7 @@ public class HashScan implements Scan {
     }
 
     public int hash(int hashcode) {
-        return hashcode & (int) Math.log(SIZE);
+        return hashcode & (int) Math.log(HashPlan.SIZE);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class HashScan implements Scan {
                     }
                 }
             }
-            if (++i >= SIZE)
+            if (++i >= HashPlan.SIZE)
                 return false;
             hashInMem(hs[i]);
             hs[i].beforeFirst();
@@ -148,7 +148,7 @@ public class HashScan implements Scan {
 
     @Override
     public void close() {
-        for (int j = 0; j < SIZE; j++) {
+        for (int j = 0; j < HashPlan.SIZE; j++) {
             hr[j].close();
             hs[j].close();
         }

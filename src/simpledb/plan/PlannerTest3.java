@@ -202,13 +202,13 @@ public class PlannerTest3 {
       if (!dir.exists()) {
          dir.mkdir();
       }
-      PrintWriter pw = new PrintWriter(new FileOutputStream(TEST_DIR + "test1.txt", false));
-      for (int i = 0; i < 1; i++) {
+      PrintWriter pw = new PrintWriter(new FileOutputStream(TEST_DIR + "test8.txt", false));
+      for (int i = 0; i < 30; i++) {
          for (QueryPlannerTest.JoinPlan jp : QueryPlannerTest.JoinPlan.values()) {
             String dname = DNAME_BASE + "-" + jp;
             try {
                System.out.printf("\nrunning %s, directory: %s\n", jp, dname);
-               long time = test1(dname, jp);
+               long time = test8(dname, jp);
                pw.println(jp + " " + time);
                pw.flush();
                db.fileMgr().closeAll();

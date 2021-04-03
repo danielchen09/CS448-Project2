@@ -35,7 +35,7 @@ public class BNLJPlan implements Plan {
 
     @Override
     public int blocksAccessed() {
-        return 0;
+        return p1.blocksAccessed() * p2.blocksAccessed() + p1.blocksAccessed();
     }
 
     @Override
